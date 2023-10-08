@@ -1,10 +1,51 @@
+struct Runner<T>(T);
+
+trait Print<A, B> {
+	fn run(self, func: fn(A) -> B);
+}
+
+// specialized implementation
+impl<T: std::fmt::Display, B> Print<T, B> for Runner<T> {
+	fn run(self, func: fn(T) -> B) {
+		func(self.0);
+	}
+}
+
+trait DefaultPrint {
+	fn run(self);
+}
+
+// default implementation
+//
+// Note that the Self type of this impl is &Printer<T> and so the
+// method argument is actually &&T!
+// That makes this impl lower priority during method
+// resolution than the implementation for `Print` above.
+impl<T> DefaultPrint for &Runner<T> {
+	fn run(self) {
+		println!("I cannot be printed");
+	}
+}
+
+fn main() {
+	let not_printable = Runner(());
+	let printable = Runner("Hello World");
+
+	not_printable.run();
+	printable.run(|_: &str| {});
+}
+
 #[macro_export]
 macro_rules! run {
     ($function: expr, $message:tt) => {{
+		use	crate::{Runner,Print};
+		Runner($message).run($function);
         $function($message)
     }};
 
     ($function: expr, $first_arg:tt, $($message:tt)*) => {{
+		// use	crate::{Runner,Print};
+		// Runner($first_arg).run($function);
         $function($first_arg, $($message)*)
     }}
 }
@@ -21,6 +62,8 @@ mod tests {
 
 	#[test]
 	fn monadic() {
+		use super::main;
+		main();
 		let result = run!(add_one, 2);
 		assert_eq!(result, 3);
 	}
