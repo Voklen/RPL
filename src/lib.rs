@@ -5,14 +5,14 @@ trait Print<A, B> {
 }
 
 // specialized implementation
-impl<T: std::fmt::Display, B> Print<T, B> for Runner<T> {
+impl<T: std::iter::Iterator, B> Print<T, B> for Runner<T> {
 	fn run(self, func: fn(T) -> B) {
 		func(self.0);
 	}
 }
 
-trait DefaultPrint {
-	fn run(self);
+trait DefaultPrint<A, B> {
+	fn run(self, func: fn(A) -> B);
 }
 
 // default implementation
@@ -21,8 +21,8 @@ trait DefaultPrint {
 // method argument is actually &&T!
 // That makes this impl lower priority during method
 // resolution than the implementation for `Print` above.
-impl<T> DefaultPrint for &Runner<T> {
-	fn run(self) {
+impl<T, B> DefaultPrint<T, B> for &Runner<T> {
+	fn run(self, func: fn(T) -> B) {
 		println!("I cannot be printed");
 	}
 }
@@ -31,14 +31,14 @@ fn main() {
 	let not_printable = Runner(());
 	let printable = Runner("Hello World");
 
-	not_printable.run();
+	not_printable.run(|_| {});
 	printable.run(|_: &str| {});
 }
 
 #[macro_export]
 macro_rules! run {
     ($function: expr, $message:tt) => {{
-		use	crate::{Runner,Print};
+		use	crate::{Runner, DefaultPrint, Print};
 		Runner($message).run($function);
         $function($message)
     }};
