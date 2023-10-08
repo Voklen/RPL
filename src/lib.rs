@@ -1,7 +1,11 @@
 #[macro_export]
 macro_rules! run {
-    ($function: expr, $($message:tt)*) => {{
-        $function($($message)*)
+    ($function: expr, $message:tt) => {{
+        $function($message)
+    }};
+
+    ($function: expr, $first_arg:tt, $($message:tt)*) => {{
+        $function($first_arg, $($message)*)
     }}
 }
 
@@ -16,8 +20,14 @@ mod tests {
 	}
 
 	#[test]
-	fn basic() {
-		let result = run!(add, 2, 2);
-		assert_eq!(result, 4);
+	fn monadic() {
+		let result = run!(add_one, 2);
+		assert_eq!(result, 3);
+	}
+
+	#[test]
+	fn dyadic() {
+		let result = run!(add, 2, 3);
+		assert_eq!(result, 5);
 	}
 }
