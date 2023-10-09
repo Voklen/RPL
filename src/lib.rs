@@ -1,15 +1,15 @@
 #[macro_export]
 macro_rules! run {
-	($function: expr, $message:tt) => {{
+	($function: expr, $message:expr) => {{
 		#[allow(unused_imports)]
 		use crate::{ArrayRun, Runner, ScalarRun};
 		Runner($message).run($function)
 	}};
 
-	($function: expr, $first_arg:tt, $second_arg:tt) => {{
+	($function: expr, $first_arg:expr, $second_arg:expr) => {{
 		#[allow(unused_imports)]
 		use crate::{ArrayRun, Runner, ScalarRun};
-		let runified = |arg| run!(|sec| $function(arg, sec), $second_arg);
+		let runified = |arg| run!(|sec| $function(arg, sec), $second_arg.clone());
 		Runner($first_arg).run(runified)
 	}};
 }
@@ -85,13 +85,12 @@ mod tests {
 		assert_eq!(result, vec![4, 5]);
 	}
 
-	#[ignore = "unimplemented"]
 	#[test]
 	fn dyadic_2d_array() {
-		// let array1 = vec![2, 3];
-		// let array2 = vec![4, 5];
-		// let result = run!(add, array1, array2);
-		// assert_eq!(result, vec![vec![6, 7], vec![7, 8]]);
+		let array1 = vec![2, 3];
+		let array2 = vec![4, 5];
+		let result = run!(add, array1, array2);
+		assert_eq!(result, vec![vec![6, 7], vec![7, 8]]);
 	}
 
 	fn add_one(num: usize) -> usize {
