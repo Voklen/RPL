@@ -1,13 +1,16 @@
 struct Runner<T>(T);
 
-trait Print<A, B> {
-	fn run(self, func: fn(A) -> B);
+trait Print<F, O> {
+	fn run(self, func: F) -> Vec<O>;
 }
 
 // specialized implementation
-impl<T: std::iter::Iterator, B> Print<T, B> for Runner<T> {
-	fn run(self, func: fn(T) -> B) {
-		func(self.0);
+impl<T: std::iter::IntoIterator, F, O> Print<F, O> for Runner<T>
+where
+	F: Fn(T::Item) -> O,
+{
+	fn run(self, func: F) -> Vec<O> {
+		self.0.into_iter().map(func).collect()
 	}
 }
 
@@ -21,23 +24,17 @@ trait DefaultPrint<A, B> {
 // method argument is actually &&T!
 // That makes this impl lower priority during method
 // resolution than the implementation for `Print` above.
-impl<T, B: std::fmt::Display> DefaultPrint<T, B> for Runner<T> {
+// Copy is a temporary fix here
+impl<T: Copy, B> DefaultPrint<T, B> for &Runner<T> {
 	fn run(self, func: fn(T) -> B) -> B {
 		func(self.0)
 	}
 }
 
-fn main() {
-	let not_printable = Runner(());
-	let printable = Runner("Hello World");
-
-	// not_printable.run(|_| {});
-	// printable.run(|_: &str| {});
-}
-
 #[macro_export]
 macro_rules! run {
     ($function: expr, $message:tt) => {{
+		#[allow(unused_imports)]
 		use	crate::{Runner, DefaultPrint, Print};
 		Runner($message).run($function)
     }};
@@ -61,10 +58,15 @@ mod tests {
 
 	#[test]
 	fn monadic() {
-		use super::main;
-		main();
 		let result = run!(add_one, 2);
 		assert_eq!(result, 3);
+	}
+
+	#[test]
+	fn monadic_array() {
+		let array = vec![2, 3];
+		let result = run!(add_one, array);
+		assert_eq!(result, vec![3, 4]);
 	}
 
 	#[test]
