@@ -1,17 +1,17 @@
 #[macro_export]
 macro_rules! run {
-    ($function: expr, $message:tt) => {{
+	($function: expr, $message:tt) => {{
 		#[allow(unused_imports)]
-		use	crate::{Runner, ScalarRun, ArrayRun};
+		use crate::{ArrayRun, Runner, ScalarRun};
 		Runner($message).run($function)
-    }};
+	}};
 
-    ($function: expr, $first_arg:tt, $($message:tt)*) => {{
+	($function: expr, $first_arg:tt, $second_arg:tt) => {{
 		#[allow(unused_imports)]
-		use	crate::{Runner, ScalarRun, ArrayRun};
-		let func = |arg| {$function(arg, $($message)*)};
-		Runner($first_arg).run(func)
-    }}
+		use crate::{ArrayRun, Runner, ScalarRun};
+		let runified = |arg| run!(|sec| $function(arg, sec), $second_arg);
+		Runner($first_arg).run(runified)
+	}};
 }
 
 struct Runner<T>(T);
@@ -29,7 +29,7 @@ trait ScalarRun<F, O> {
 // Copy is a temporary fix here
 impl<T: Copy, F, O> ScalarRun<F, O> for &Runner<T>
 where
-	F: Fn(T) -> O,
+	F: FnOnce(T) -> O,
 {
 	fn run(self, func: F) -> O {
 		func(self.0)
@@ -72,10 +72,26 @@ mod tests {
 	}
 
 	#[test]
-	fn dyadic_1d_array() {
+	fn dyadic_1d_array_first_arg() {
 		let array = vec![2, 3];
 		let result = run!(add, array, 2);
 		assert_eq!(result, vec![4, 5]);
+	}
+
+	#[test]
+	fn dyadic_1d_array_second_arg() {
+		let array = vec![2, 3];
+		let result = run!(add, 2, array);
+		assert_eq!(result, vec![4, 5]);
+	}
+
+	#[ignore = "unimplemented"]
+	#[test]
+	fn dyadic_2d_array() {
+		// let array1 = vec![2, 3];
+		// let array2 = vec![4, 5];
+		// let result = run!(add, array1, array2);
+		// assert_eq!(result, vec![vec![6, 7], vec![7, 8]]);
 	}
 
 	fn add_one(num: usize) -> usize {
