@@ -7,9 +7,10 @@ macro_rules! run {
     }};
 
     ($function: expr, $first_arg:tt, $($message:tt)*) => {{
-		// use	crate::{Runner,Print};
-		// Runner($first_arg).run($function);
-        $function($first_arg, $($message)*)
+		#[allow(unused_imports)]
+		use	crate::{Runner, ScalarRun, ArrayRun};
+		let func = |arg| {$function(arg, $($message)*)};
+		Runner($first_arg).run(func)
     }}
 }
 
@@ -68,6 +69,13 @@ mod tests {
 	fn dyadic() {
 		let result = run!(add, 2, 3);
 		assert_eq!(result, 5);
+	}
+
+	#[test]
+	fn dyadic_1d_array() {
+		let array = vec![2, 3];
+		let result = run!(add, array, 2);
+		assert_eq!(result, vec![4, 5]);
 	}
 
 	fn add_one(num: usize) -> usize {
