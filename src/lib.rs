@@ -12,6 +12,19 @@ macro_rules! run {
 		let runified = |arg| run!(|sec| $function(arg, sec), $second_arg.clone());
 		Runner($first_arg).run(runified)
 	}};
+
+	($function: expr, $first_arg:expr, $second_arg:expr, $third_arg:expr) => {{
+		#[allow(unused_imports)]
+		use crate::{ArrayRun, Runner, ScalarRun};
+		let runified = |arg| {
+			run!(
+				|sec, tri| $function(arg, sec, tri),
+				$second_arg.clone(),
+				$third_arg.clone()
+			)
+		};
+		Runner($first_arg).run(runified)
+	}};
 }
 
 struct Runner<T>(T);
@@ -93,11 +106,37 @@ mod tests {
 		assert_eq!(result, vec![vec![6, 7], vec![7, 8]]);
 	}
 
+	#[test]
+	fn triadic() {
+		let result = run!(tri_add, 2, 3, 10);
+		assert_eq!(result, 15);
+	}
+
+	#[test]
+	fn triadic_1d_array_first_arg() {
+		let array = vec![2, 3];
+		let result = run!(tri_add, array, 2, 5);
+		assert_eq!(result, vec![9, 10]);
+	}
+
+	#[test]
+	fn triadic_3d_array() {
+		let result = run!(tri_add, vec![2, 3], vec![0, 1], vec![4, 6]);
+		assert_eq!(
+			result,
+			vec![vec![vec![6, 8], vec![7, 9]], vec![vec![7, 9], vec![8, 10]]]
+		);
+	}
+
 	fn add_one(num: usize) -> usize {
 		num + 1
 	}
 
 	fn add(left: usize, right: usize) -> usize {
 		left + right
+	}
+
+	fn tri_add(first: usize, second: usize, third: usize) -> usize {
+		first + second + third
 	}
 }
