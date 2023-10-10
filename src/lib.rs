@@ -1,30 +1,36 @@
 #[macro_export]
 macro_rules! run {
-	($function: expr, $message:expr) => {{
+	($function: expr, $arg:expr) => {{
 		#[allow(unused_imports)]
 		use crate::{ArrayRun, Runner, ScalarRun};
-		Runner($message).run($function)
+		Runner($arg).run($function)
 	}};
 
-	($function: expr, $first_arg:expr, $second_arg:expr) => {{
-		#[allow(unused_imports)]
-		use crate::{ArrayRun, Runner, ScalarRun};
-		let runified = |arg| run!(|sec| $function(arg, sec), $second_arg.clone());
-		Runner($first_arg).run(runified)
-	}};
-
-	($function: expr, $first_arg:expr, $second_arg:expr, $third_arg:expr) => {{
+	($function: expr, $first_arg:expr, $($other_args:expr),+) => {{
 		#[allow(unused_imports)]
 		use crate::{ArrayRun, Runner, ScalarRun};
 		let runified = |arg| {
-			run!(
-				|sec, tri| $function(arg, sec, tri),
-				$second_arg.clone(),
-				$third_arg.clone()
+			run!(make_closure!($function, arg $(,$other_args)+) $(,$other_args.clone())+
 			)
 		};
 		Runner($first_arg).run(runified)
 	}};
+}
+
+#[allow(unused_macros)]
+macro_rules! make_closure {
+	($function: expr, $arg: expr, $a:expr) => {
+		|a| $function($arg, a)
+	};
+	($function: expr, $arg: expr, $a:expr, $b:expr) => {
+		|a, b| $function($arg, a, b)
+	};
+	($function: expr, $arg: expr, $a:expr, $b:expr, $c:expr) => {
+		|a, b, c| $function($arg, a, b, c)
+	};
+	($function: expr, $arg: expr, $a:expr, $b:expr, $c:expr, $d:expr) => {
+		|a, b, c, d| $function($arg, a, b, c, d)
+	};
 }
 
 struct Runner<T>(T);
