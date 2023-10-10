@@ -79,8 +79,7 @@ mod tests {
 
 	#[test]
 	fn monadic_array() {
-		let array = vec![2, 3];
-		let result = run!(add_one, array);
+		let result = run!(add_one, vec![2, 3]);
 		assert_eq!(result, vec![3, 4]);
 	}
 
@@ -92,23 +91,19 @@ mod tests {
 
 	#[test]
 	fn dyadic_1d_array_first_arg() {
-		let array = vec![2, 3];
-		let result = run!(add, array, 2);
+		let result = run!(add, vec![2, 3], 2);
 		assert_eq!(result, vec![4, 5]);
 	}
 
 	#[test]
 	fn dyadic_1d_array_second_arg() {
-		let array = vec![2, 3];
-		let result = run!(add, 2, array);
+		let result = run!(add, 2, vec![2, 3]);
 		assert_eq!(result, vec![4, 5]);
 	}
 
 	#[test]
 	fn dyadic_2d_array() {
-		let array1 = vec![2, 3];
-		let array2 = vec![4, 5];
-		let result = run!(add, array1, array2);
+		let result = run!(add, vec![2, 3], vec![4, 5]);
 		assert_eq!(result, vec![vec![6, 7], vec![7, 8]]);
 	}
 
@@ -120,8 +115,7 @@ mod tests {
 
 	#[test]
 	fn triadic_1d_array_first_arg() {
-		let array = vec![2, 3];
-		let result = run!(tri_add, array, 2, 5);
+		let result = run!(tri_add, vec![2, 3], 2, 5);
 		assert_eq!(result, vec![9, 10]);
 	}
 
