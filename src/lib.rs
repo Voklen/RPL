@@ -1,3 +1,5 @@
+use std::marker::{Send, Sync};
+
 #[macro_export]
 macro_rules! run {
 	($function: expr, $arg:expr) => {{
@@ -66,12 +68,15 @@ trait ArrayRun<F, O> {
 }
 
 // Specialized implementation for arrays
-impl<T: std::iter::IntoIterator, F, O> ArrayRun<F, O> for Runner<T>
+impl<T, F, O> ArrayRun<F, O> for Runner<T>
 where
-	F: Fn(T::Item) -> O,
+	T: rayon::iter::IntoParallelIterator,
+	F: Fn(T::Item) -> O + Send + Sync,
+	O: Send,
 {
 	fn run(self, func: F) -> Vec<O> {
-		self.0.into_iter().map(func).collect()
+		use rayon::prelude::*;
+		self.0.into_par_iter().map(func).collect()
 	}
 }
 
