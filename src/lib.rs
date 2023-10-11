@@ -10,7 +10,13 @@ macro_rules! run {
 		#[allow(unused_imports)]
 		use crate::{ArrayRun, Runner, ScalarRun};
 		let runified = |arg| {
-			run!(make_closure!($function, arg $(,$other_args)+) $(,$other_args.clone())+
+			run!(
+				make_closure!(
+					$function,
+					arg
+					$(,$other_args)+
+				)
+				$(,$other_args.clone())+
 			)
 		};
 		Runner($first_arg).run(runified)
