@@ -4,13 +4,13 @@ use std::marker::{Send, Sync};
 macro_rules! run {
 	($function: expr, $arg:expr) => {{
 		#[allow(unused_imports)]
-		use crate::{ArrayRun, Runner, ScalarRun};
+		use array_based::{ArrayRun, Runner, ScalarRun, make_closure};
 		Runner($arg).run($function)
 	}};
 
 	($function: expr, $first_arg:expr, $($other_args:expr),+) => {{
 		#[allow(unused_imports)]
-		use crate::{ArrayRun, Runner, ScalarRun};
+		use array_based::{ArrayRun, Runner, ScalarRun, make_closure};
 		let runified = |arg| {
 			run!(
 				make_closure!(
@@ -25,7 +25,7 @@ macro_rules! run {
 	}};
 }
 
-#[allow(unused_macros)]
+#[macro_export]
 macro_rules! make_closure {
 	($function: expr, $arg: expr, $a:expr) => {
 		|a| $function($arg, a)
@@ -41,9 +41,9 @@ macro_rules! make_closure {
 	};
 }
 
-struct Runner<T>(T);
+pub struct Runner<T>(pub T);
 
-trait ScalarRun<F, O> {
+pub trait ScalarRun<F, O> {
 	fn run(self, func: F) -> O;
 }
 
@@ -63,7 +63,7 @@ where
 	}
 }
 
-trait ArrayRun<F, O> {
+pub trait ArrayRun<F, O> {
 	fn run(self, func: F) -> Vec<O>;
 }
 
