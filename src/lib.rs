@@ -3,14 +3,10 @@ use std::marker::{Send, Sync};
 #[macro_export]
 macro_rules! run {
 	($function: expr, $arg:expr) => {{
-		#[allow(unused_imports)]
-		use array_based::{ArrayRun, Runner, ScalarRun, make_closure};
 		Runner($arg).run($function)
 	}};
 
 	($function: expr, $first_arg:expr, $($other_args:expr),+) => {{
-		#[allow(unused_imports)]
-		use array_based::{ArrayRun, Runner, ScalarRun, make_closure};
 		let runified = |arg| {
 			run!(
 				make_closure!(
@@ -82,6 +78,8 @@ where
 
 #[cfg(test)]
 mod tests {
+	use crate::{make_closure, ArrayRun, Runner, ScalarRun};
+
 	#[test]
 	fn monadic() {
 		let result = run!(add_one, 2);
